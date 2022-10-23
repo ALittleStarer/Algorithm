@@ -5,51 +5,9 @@
 
     时间复杂度: O(n^2) 路径长更新不可避免, 准确为n + n-1 + n-2 + ... + 1
 */
-#include<iostream>
-#include<vector>
-#include<unordered_set>
-using namespace std;
-
-class Load
-{
-private:
-    vector<int> loadOrder;
-public:
-    Load(){}
-    Load(const Load& copySource)
-    {
-        loadOrder = vector<int>(copySource.loadOrder);
-    }
-    Load(int source, int target)
-    {
-        loadOrder.push_back(source);
-        loadOrder.push_back(target);
-    }
-
-    Load operator + (const Load& src)
-    {
-        Load copy(*this);
-        if(copy.loadOrder[copy.loadOrder.size()-1] == src.loadOrder[0]){
-            for(int i=1; i < src.loadOrder.size();i++){
-                copy.loadOrder.push_back(src.loadOrder[i]);
-            }
-        }
-
-        return copy;
-    }
-
-    void printLoad()
-    {
-        if(!loadOrder.empty()){
-            cout<<loadOrder[0];
-        }
-        for(int i=1; i < loadOrder.size(); i++){
-            cout<<"->"<<loadOrder[i];
-        }
-
-        cout<<endl;
-    }
-};
+#include"GraphCreator.h"
+#include"load.h"
+#include"unordered_set"
 /*Solution Code Below */
 class Dijkstra
 {
@@ -84,9 +42,12 @@ public:
         }
     }
 
-    void initial(int sourceInput)
+    bool initial(int sourceInput)
     {
-        setSource(sourceInput);
+        if(!setSource(sourceInput)){
+            return false;
+        }
+
         distance[sourceInput] = 0;
         loads[sourceInput] = Load(sourceInput, sourceInput);
         findOver.insert(sourceInput);
@@ -99,16 +60,20 @@ public:
                 }
             }
         }
+        return true;
     }
+
     void solution()
     {
         cout<<"please input the source ID:";
         int sourceInput;
         cin>>sourceInput;
-        initial(sourceInput);
+        if(!initial(sourceInput)){
+            cout<<"source ID is illegal"<<endl;
+            return;
+        };
         // waitForFind 是未确定最短路径集合， findOver 是已确定最短路径集合
         while(!waitForFind.empty()){
-            print();
             int minDistance = INT_MAX;
             int minID = -1;
             for(auto val : waitForFind){
@@ -145,12 +110,10 @@ public:
 
 int main()
 {
-    vector<vector<int>> map = {
-        {0, 1, -1 ,3},
-        {1, 0, 2, -1},
-        {-1, 2, 0, -1},
-        {3, -1, -1, 0}
-    };
+    int size;
+    cin>>size;
+    GraphCreator creator(size, UNDIRECTED);
+    vector<vector<int>> map = creator.getGraph().map();
 
     for(int i=0;i<map.size();i++){
         for(int j=0;j<map[i].size();j++){
